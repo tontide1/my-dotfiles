@@ -1,39 +1,13 @@
 {
   "$schema": "https://opencode.ai/config.json",
-  // Tự cập nhật khi khởi động
   "autoupdate": true,
-  // Agent mặc định khi mở OpenCode
   "default_agent": "build",
-  "small_model": "opencode/minimax-m2.5-free",
-  // "provider": {
-  //   "9router": {
-  //     "npm": "@ai-sdk/openai-compatible",
-  //     "options": {
-  //       "baseURL": "http://localhost:20128/v1",
-  //       "apiKey": "sk_9router"
-  //     },
-  //     "models": {
-  //       "provider/model-id": {
-  //         "name": "provider/model-id"
-  //       }
-  //     }
-  //   }
-  // },
-  // "model": "9router/provider/model-id",
-  // Chỉ bật các provider bạn thực sự dùng
-  // "enabled_providers": [
-  //   "openai",
-  //   "opencode",
-  //   "github-copilot"
-  //   // "9router"
-  // ],
-  // Tự compact khi session dài
   "compaction": {
     "auto": true,
     "prune": true,
     "reserved": 16000
   },
-  // Permissions: mặc định của OpenCode là allow tất cả, nên nên siết lại
+  // Global Permissions (Áp dụng làm mặc định nếu Agent không ghi đè)
   "permission": {
     "read": "allow",
     "grep": "allow",
@@ -43,18 +17,15 @@
     "todowrite": "allow",
     "question": "allow",
     "webfetch": "allow",
-    // Nếu máy bạn không hỗ trợ websearch, đổi thành "ask" hoặc bỏ key này
-    "websearch": "allow",
+    "websearch": "ask",
     "edit": "allow",
     "bash": {
-      "*": "allow",
-      // Git read-only
+      "*": "ask",
       "git status*": "allow",
       "git diff*": "allow",
       "git log*": "allow",
       "git branch*": "allow",
       "git show*": "allow",
-      // Test / lint / typecheck
       "pytest*": "allow",
       "python -m pytest*": "allow",
       "uv run pytest*": "allow",
@@ -62,20 +33,11 @@
       "uv run ruff*": "allow",
       "pyright*": "allow",
       "mypy*": "allow",
-      // Search / inspect
       "rg *": "allow",
       "grep *": "allow",
       "find *": "allow",
       "ls *": "allow",
-      "tree *": "allow",
-      // Side-effect lớn
-      "git commit *": "ask",
-      "git push *": "ask",
-      "sudo *": "deny",
-      "rm *": "ask",
-      "docker system *": "ask",
-      "kubectl delete *": "ask",
-      "terraform apply *": "ask"
+      "tree *": "allow"
     }
   },
   "agent": {
@@ -84,68 +46,44 @@
       "temperature": 0.1,
       "permission": {
         "edit": "deny",
+        "task": {
+          "*": "deny",
+          "review": "allow" // Cho phép gọi subagent review
+        },
         "bash": {
           "*": "ask",
-          "git status*": "allow",
-          "git diff*": "allow",
-          "git log*": "allow",
-          "git show*": "allow",
-          "rg *": "allow",
-          "grep *": "allow",
-          "find *": "allow",
           "ls *": "allow",
-          "tree *": "allow"
+          "tree *": "allow",
+          "find *": "allow",
+          "rg *": "allow",
+          "grep *": "allow"
         }
       }
     },
     "build": {
       "mode": "primary",
-      "temperature": 0.2,
+      "reasoningEffort": "high",
+      "temperature": 0.0,
       "permission": {
+        "edit": "allow",
+        "task": {
+          "*": "ask",
+          "review": "allow", // Tự động gọi review sau khi build xong
+          "gemini-cli": "allow" // Cho phép gọi Agent quét codebase
+        },
         "bash": {
           "*": "ask",
-          "git status*": "allow",
-          "git diff*": "allow",
-          "git log*": "allow",
-          "git show*": "allow",
           "pytest*": "allow",
-          "python -m pytest*": "allow",
           "uv run pytest*": "allow",
           "ruff*": "allow",
-          "uv run ruff*": "allow",
-          "pyright*": "allow",
           "mypy*": "allow",
-          "rg *": "allow",
-          "grep *": "allow",
-          "find *": "allow",
-          "ls *": "allow",
-          "tree *": "allow",
-          "git commit *": "ask",
-          "git push *": "deny",
-          "sudo *": "deny"
-        }
-      }
-    },
-    "review": {
-      "mode": "subagent",
-      "temperature": 0.05,
-      "permission": {
-        "edit": "deny",
-        "webfetch": "allow",
-        "bash": {
-          "*": "ask",
           "git status*": "allow",
-          "git diff*": "allow",
-          "git log*": "allow",
-          "git show*": "allow",
-          "rg *": "allow",
-          "grep *": "allow",
-          "ls *": "allow"
+          "git diff*": "allow"
         }
       }
     }
   },
-  // Giảm noise cho watcher, đặc biệt hữu ích cho Python + AI workloads
+  // Watcher config giữ nguyên (Tối ưu rất tốt cho Python/MLOps)
   "watcher": {
     "ignore": [
       ".git/**",
@@ -171,7 +109,6 @@
       ".dvc/cache/**"
     ]
   },
-  // Giữ nguyên MCP Docker hiện tại của bạn
   "mcp": {
     "MCP_DOCKER": {
       "type": "local",

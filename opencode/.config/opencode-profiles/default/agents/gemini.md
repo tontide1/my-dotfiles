@@ -1,7 +1,7 @@
 ---
 description: Large-context codebase analysis specialist that orchestrates Gemini CLI for deep repository exploration, architecture mapping, and holistic code understanding
 mode: subagent
-model: openai/gpt-5.4
+model: opencode/minimax-m2.5-free
 temperature: 0.1
 permission:
   read: allow
@@ -60,3 +60,9 @@ Use non-interactive mode for deterministic one-shot analysis:
 
 ```bash
 gemini --prompt "<analysis task>"
+```
+### Optimal Commands
+```bash
+# Phân tích lưu vào thư mục docs
+gemini --prompt "Analyze architecture" --all-files > docs/architecture_report.md
+```
